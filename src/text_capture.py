@@ -55,22 +55,3 @@ class TextCapture:
             except Exception as e:
                 print(f"剪贴板监控错误: {str(e)}")
             time.sleep(0.5)  # 降低CPU使用率
-
-def example_callback(text: str):
-    """示例回调函数"""
-    print(f"捕获到文本: {text}")
-
-if __name__ == "__main__":
-    # 使用示例
-    capture = TextCapture(example_callback)
-    capture.start_capture()
-    print("文本捕获已启动...")
-    print("按Ctrl+Shift+S进行屏幕文字识别")
-    print("复制文本会自动捕获")
-    
-    try:
-        while True:
-            time.sleep(1)
-    except KeyboardInterrupt:
-        capture.stop_capture()
-        print("文本捕获已停止")
