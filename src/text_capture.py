@@ -5,6 +5,7 @@ from PIL import ImageGrab, Image
 import numpy as np
 from typing import Callable
 import time
+from threading import Thread
 
 class TextCapture:
     def __init__(self, callback: Callable[[str], None]):
@@ -15,19 +16,24 @@ class TextCapture:
         self.callback = callback
         self.last_clipboard_content = ''
         self.is_monitoring = False
+        self.monitor_thread = None  # 线程引用
 
     def start_capture(self):
         """启动文本捕获"""
         self.is_monitoring = True
+        self.last_clipboard_content = pyperclip.paste()
         # 设置快捷键监听
         keyboard.add_hotkey('ctrl+shift+s', self._capture_screen)
         # 启动剪贴板监控
-        self._monitor_clipboard()
+        self.monitor_thread = Thread(target=self._monitor_clipboard)  # 创建独立线程
+        self.monitor_thread.start()  # 启动线程
 
     def stop_capture(self):
         """停止文本捕获"""
         self.is_monitoring = False
         keyboard.remove_hotkey('ctrl+shift+s')
+        if self.monitor_thread:
+            self.monitor_thread.join()  # 等待线程退出
 
     def _capture_screen(self):
         """屏幕文字识别"""
