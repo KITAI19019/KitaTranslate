@@ -1,5 +1,5 @@
 from PyQt5.QtGui import QIcon
-from PyQt5.QtCore import Qt, pyqtSignal, QObject, QThread
+from PyQt5.QtCore import Qt, pyqtSignal, QObject, QThread, QLocale
 from PyQt5.QtWidgets import (QApplication, QWidget, QTextEdit,
                              QVBoxLayout, QComboBox, QSystemTrayIcon,
                              QHBoxLayout, QLabel, QStatusBar)
@@ -7,8 +7,6 @@ from PyQt5.QtWidgets import (QApplication, QWidget, QTextEdit,
 from text_capture import TextCapture
 from translate import Translator
 import time
-
-
 
 class TranslationSignals(QObject):
     text_captured = pyqtSignal(str)  # 文本捕获信号
@@ -44,7 +42,7 @@ class TranslatorUI(QWidget):
     def __init__(self):
         super().__init__()
         self.signals = TranslationSignals()
-        self.translator = Translator(from_lang='en', to_lang='zh')  # 翻译器实例化
+        self.translator = Translator(from_lang='en', to_lang='zh')
         self.capture = TextCapture(self.handle_captured_text)  # 文本捕获实例
         self.init_ui()
         self.init_tray()
@@ -52,6 +50,7 @@ class TranslatorUI(QWidget):
         self.capture.start_capture()  # 启动捕获
         self.trans_queue = []
         self.trans_thread = None
+
 
     def closeEvent(self, event):
         self.capture.stop_capture()
@@ -150,13 +149,17 @@ class TranslatorUI(QWidget):
         self.trans_thread.start()
 
 
+
     def init_ui(self):
         # 语言选择
         self.languages = ["中文","English","日本語"]
         self.s_lang_combo = QComboBox()
         self.t_lang_combo = QComboBox()
-        self.s_lang_combo.addItems(["自动检测语言"] + self.languages)
+        self.s_lang_combo.addItems(self.languages)
         self.t_lang_combo.addItems(self.languages)
+
+        self.s_lang_combo.currentIndexChanged.connect(self.chosed_language)
+        self.t_lang_combo.currentIndexChanged.connect(self.chosed_language)
         # 文本区域
         self.source = QTextEdit()
         self.target = QTextEdit()
@@ -164,6 +167,8 @@ class TranslatorUI(QWidget):
         #状态栏
         self.status_bar = QStatusBar()
         self.status_bar.showMessage("就绪")
+
+
 
         # 布局系统
         main_layout = QVBoxLayout()
@@ -188,6 +193,13 @@ class TranslatorUI(QWidget):
         # 窗口属性
         self.setWindowFlags(Qt.WindowStaysOnTopHint)
         self.setMinimumSize(400, 300)
+
+    def chosed_language(self):
+        langs = {"中文": "zh", "English": "en", "日本語": "ja"}
+        s_lang = self.s_lang_combo.currentText()
+        t_lang = self.t_lang_combo.currentText()
+        self.translator = Translator(from_lang=langs[s_lang], to_lang=langs[t_lang])
+        print(f"输入语言：{s_lang}\n输出语言：{t_lang}")
 
 
 if __name__ == "__main__":
